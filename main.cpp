@@ -1,9 +1,10 @@
 #include <iostream>
 #include "Graph.h"
+#include  <stdio.h>
 
 int main() {
     // Create a new graph
-    Graph g;
+    /*Graph g;
 
     // Add vertices to the graph
     g.addVertex(0);
@@ -40,5 +41,12 @@ int main() {
         std::cout << edge.first << " - " << edge.second << std::endl;
     }
 
-    return 0;
+    return 0;*/
+    
+    const int  MAX_SIZE = 256;
+    char data[MAX_SIZE+1] = {0};
+
+    FILE *fp;
+    fp = _popen("python draw.py", "w");
+
 }
