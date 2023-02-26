@@ -6,7 +6,7 @@
 
 int main() {
     // Create a new graph
-    /*Graph g;
+    Graph g;
 
     // Add vertices to the graph
     g.addVertex(0);
@@ -26,13 +26,23 @@ int main() {
 
     // Perform a breadth-first search starting at vertex 0
     std::cout << "BFS starting at vertex 0: ";
-    g.bfs(0);
-    std::cout << std::endl;
+
+    std::vector<int> res = g.bfs(0);
+    for (auto i: res){
+        std::cout << i;
+    }
+
+    std::cout << "\n";
 
     // Perform a depth-first search starting at vertex 0
     std::cout << "DFS starting at vertex 0: ";
-    g.dfs(0);
-    std::cout << std::endl;
+
+    std::vector<int> res2 = g.dfs(0);
+    for (auto i: res2){
+        std::cout << i;
+    }
+
+    std::cout << "\n";
 
     // Build a minimum spanning tree using Prim's algorithm
     std::vector<std::pair<int, int>> mst = g.prim();
@@ -43,17 +53,24 @@ int main() {
         std::cout << edge.first << " - " << edge.second << std::endl;
     }
 
-    return 0;*/
+    std::vector<int> dist = g.dijkstra(0);
+
+    std::cout << "Shortest path distances from vertex " << 0 << ":" << std::endl;
+    for (int i = 0; i < dist.size(); i++) {
+        std::cout << i << ": " << dist[i] << std::endl;
+    }
+
+    return 0;
     
-    const int  MAX_SIZE = 256;
+    /*const int  MAX_SIZE = 256;
     char data[MAX_SIZE+1] = {0};
 
     int status;
-    FILE *fp;
+    FILE *fp; 
     fp = _popen("python draw.py", "w");
     if (fp  != NULL){
         status = _pclose(fp);
         std::cout << status << "\n";
     }
-
+    */
 }
