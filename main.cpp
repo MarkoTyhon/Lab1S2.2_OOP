@@ -1,6 +1,8 @@
 #include <iostream>
 #include "Graph.h"
-#include  <stdio.h>
+#include <stdio.h>
+#include <fstream>
+
 
 int main() {
     // Create a new graph
@@ -46,7 +48,12 @@ int main() {
     const int  MAX_SIZE = 256;
     char data[MAX_SIZE+1] = {0};
 
+    int status;
     FILE *fp;
     fp = _popen("python draw.py", "w");
+    if (fp  != NULL){
+        status = _pclose(fp);
+        std::cout << status << "\n";
+    }
 
 }

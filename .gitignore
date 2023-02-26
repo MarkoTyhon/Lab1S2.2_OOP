@@ -1,2 +1,8 @@
 .vscode/
 build/
+.idea/
+.ipynb_checkpoints/
+Graph.png
+graph.txt
+PosGraph.png
+Untitled.ipynb
