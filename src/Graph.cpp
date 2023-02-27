@@ -1,17 +1,39 @@
 #include "Graph.h"
 
+
+Graph::Graph(int V){
+    for (int vetex = 0; vetex < V; vetex++){
+        addVertex(vetex);
+    }
+}
+
 void Graph::addVertex(int v) {
     adjacencyList[v] = {};
 }
+
 
 void Graph::addEdge(int v1, int v2, int weight) {
     adjacencyList[v1].emplace_back(v2, weight);
     adjacencyList[v2].emplace_back(v1, weight);
 }
 
-std::vector<int> Graph::bfs(int start) {
+int Graph::getNumOfVertex(){
+    return adjacencyList.size();
+}
+
+int Graph::getWeightOfEdge(int v1, int v2){
+    for (auto& pair : adjacencyList[v1]){
+        if (pair.first == v2){
+            return pair.second;
+        }
+    }
+    return -1;
+}
+
+Graph Graph::bfs(int start) {
     std::queue<int> q;
     std::vector<int> visited;
+    Graph H(getNumOfVertex());
 
     q.push(start);
     visited.push_back(start);
@@ -29,15 +51,17 @@ std::vector<int> Graph::bfs(int start) {
             if (!std::count(visited.begin(),visited.end(), u)) {
                 q.push(u);
                 visited.push_back(u);
+                H.addEdge(v, u, getWeightOfEdge(v, u));
             }
         }
     }
-    return visited;
+    return H;
 }
 
-std::vector<int> Graph::dfs(int start) {
+Graph Graph::dfs(int start) {
     std::stack<int> s;
     std::vector<int> visited;
+    Graph H(getNumOfVertex());
 
     s.push(start);
     visited.push_back(start);
@@ -55,10 +79,11 @@ std::vector<int> Graph::dfs(int start) {
             if (!std::count(visited.begin(), visited.end(), u)) {
                 s.push(u);
                 visited.push_back(u);
+                H.addEdge(v, u, getWeightOfEdge(v, u));
             }
         }
     }
-    return visited;
+    return H;
 }
 
 std::vector<std::pair<int, int>> Graph::prim() {
@@ -102,28 +127,42 @@ std::vector<std::pair<int, int>> Graph::prim() {
     return mst;
 }
 
-std::vector<int> Graph::dijkstra(int start){
-    // Set up data structures for Dijkstra's algorithm
-    std::vector<int> dist(adjacencyList.size(), std::numeric_limits<int>::max());
-    std::set<int> visited;
-    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<>> pq;
-    pq.push(std::make_pair(0, start));
-    dist[start] = 0;
+int Graph::sendToPython(){
+    std::string stringGraph = "python draw.py " + std::to_string(getNumOfVertex()) + " ";
 
-    // Run Dijkstra's algorithm
-    while (!pq.empty()) {
-        int u = pq.top().second;
-        pq.pop();
-        visited.insert(u);
-        for (const auto& neighbor : adjacencyList.at(u)) {
-            int v = neighbor.first;
-            int weight = neighbor.second;
-            if (visited.find(v) == visited.end() && dist[u] != std::numeric_limits<int>::max() && dist[u] + weight < dist[v]) {
-                dist[v] = dist[u] + weight;
-                pq.push(std::make_pair(dist[v], v));
-            }
+    for (auto const & keyEndVal : adjacencyList) {
+        for (auto const & elem : keyEndVal.second){
+            stringGraph += std::to_string(keyEndVal.first) + ":" + std::to_string(elem.first) + ":" + std::to_string(elem.second)+ " ";
         }
+	} 
+
+    std::cout << stringGraph << "\n";
+    int size = stringGraph.size();
+    char* data = new char[size+1];
+
+    strcpy(data, stringGraph.c_str());
+
+    int status;
+    FILE *fp; 
+    fp = _popen(data, "w");
+    if (fp  != NULL){
+        status = _pclose(fp);
+        std::cout << status << "\n";
     }
 
-    return dist;
+    delete[] data;
+
+	return status;
+} 
+
+
+std::ostream& operator << (std::ostream& os ,const Graph&  obj){
+	for (auto const & keyEndVal : obj.adjacencyList) {
+		os << keyEndVal.first << " :";
+        for (auto const & elem : keyEndVal.second){ 
+            os << " (" << elem.first << ", " << elem.second << ")";
+        }
+		os << ";\n";
+	} 
+	return os;
 }

@@ -24,7 +24,9 @@ int main() {
     g.addEdge(2, 4, 5);
     g.addEdge(3, 4, 1);
 
-    // Perform a breadth-first search starting at vertex 0
+    std::cout << g.dfs(0).sendToPython() << "\n";
+}
+    /*// Perform a breadth-first search starting at vertex 0
     std::cout << "BFS starting at vertex 0: ";
 
     std::vector<int> res = g.bfs(0);
@@ -60,7 +62,7 @@ int main() {
         std::cout << i << ": " << dist[i] << std::endl;
     }
 
-    return 0;
+    return 0;*/
     
     /*const int  MAX_SIZE = 256;
     char data[MAX_SIZE+1] = {0};
@@ -73,4 +75,4 @@ int main() {
         std::cout << status << "\n";
     }
     */
-}
+
