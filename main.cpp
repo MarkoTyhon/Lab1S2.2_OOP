@@ -5,22 +5,24 @@
 
 
 int main() {
-    Graph g(6); // Create graph with 6 vertices
-    g.addEdge(0, 1, 16); // Add edges with capacities
-    g.addEdge(0, 2, 13);
-    g.addEdge(1, 2, 10);
-    g.addEdge(1, 3, 12);
-    g.addEdge(2, 1, 4);
-    g.addEdge(2, 4, 14);
-    g.addEdge(3, 2, 9);
-    g.addEdge(3, 5, 20);
-    g.addEdge(4, 3, 7);
-    g.addEdge(4, 5, 4);
+    // Create a graph with 4 vertices and 5 edges
+    Graph g(6);
+    g.addEdge(0, 1, 8);
+    g.addEdge(0, 4, 3);
+    g.addEdge(1, 2, 9);
+    g.addEdge(2, 4, 7);
+    g.addEdge(2, 5, 2);
+    g.addEdge(3, 5, 5);
+    g.addEdge(4, 2, 7);
+    g.addEdge(4, 3, 4);
+
+    // Compute the maximum flow using the Ford-Fulkerson algorithm
+    int maxFlow = g.fordFulkerson(0, 5);
 
     int source = 0;
     int sink = 5;
 
-    std::cout << g.fordFulkerson(source, sink).sendToPython() << "\n";
+    std::cout << maxFlow << "\n";
 }
     /*// Perform a breadth-first search starting at vertex 0
     std::cout << "BFS starting at vertex 0: ";

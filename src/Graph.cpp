@@ -119,101 +119,63 @@ Graph Graph::primMST(int start) {
     return MST;
 }
 
-Graph Graph::fordFulkerson(int source, int sink) {
-    // Create a residual graph with the same edges as the original graph
-    Graph residual(*this);
 
-    // Initialize parent vector to keep track of augmenting path
-    std::vector<int> parent(getNumOfVertex(), -1);
-
-    // Initialize maximum flow to zero
+int Graph::fordFulkerson(int s, int t) {
+    Graph residualGraph = *this;
     int maxFlow = 0;
 
-    // Loop until there is no more augmenting path from source to sink
-    while (residual.hasAugmentingPath(source, sink, parent)) {
-        // Find the maximum flow that can be sent along the augmenting path
+    while (true) {
+        std::vector<int> parent(getNumOfVertex(), -1);
+        std::queue<int> q;
+        q.push(s);
+        parent[s] = s;
+
+        while (!q.empty() && parent[t] == -1) {
+            int u = q.front();
+            q.pop();
+
+            for (const auto& neighbor : residualGraph.adjacencyList[u]) {
+                int v = neighbor.first;
+                int capacity = neighbor.second;
+
+                if (capacity > 0 && parent[v] == -1) {
+                    parent[v] = u;
+                    q.push(v);
+                }
+            }
+        }
+
+        if (parent[t] == -1) {
+            break;
+        }
+
         int pathFlow = INT_MAX;
-        for (int v = sink; v != source; v = parent[v]) {
+        for (int v = t; v != s; v = parent[v]) {
             int u = parent[v];
-            int capacity = residual.getWeightOfEdge(u, v);
-            pathFlow = std::min(pathFlow, capacity);
+            int residualCapacity = residualGraph.getWeightOfEdge(u, v);
+            pathFlow = std::min(pathFlow, residualCapacity);
         }
 
-        // Update the residual capacities of the edges along the augmenting path
-        for (int v = sink; v != source; v = parent[v]) {
+        for (int v = t; v != s; v = parent[v]) {
             int u = parent[v];
-            residual.setWeightOfEdge(u, v, residual.getWeightOfEdge(u, v) - pathFlow);
-            residual.setWeightOfEdge(v, u, residual.getWeightOfEdge(v, u) + pathFlow);
+            residualGraph.adjacencyList[u][residualGraph.findEdgeIndex(u, v)].second -= pathFlow;
+            residualGraph.adjacencyList[v][residualGraph.findEdgeIndex(v, u)].second += pathFlow;
         }
 
-        // Add the flow along the augmenting path to the maximum flow
         maxFlow += pathFlow;
     }
 
-    // Create a new graph with the same vertices and edges as the original graph,
-    // but with the capacities of the edges set to the amount of flow sent along them
-    Graph result(getNumOfVertex());
-    for (int v = 0; v < getNumOfVertex(); v++) {
-        for (const auto& neighbor : adjacencyList[v]) {
-            int u = neighbor.first;
-            int capacity = neighbor.second;
-            int flow = capacity - residual.getWeightOfEdge(v, u);
-            result.addEdge(v, u, flow);
-        }
-    }
-
-    return result;
+    return maxFlow;
 }
 
-/*bool Graph::hasAugmentingPath(int source, int sink, std::vector<int>& parent) {
-    // Initialize visited vector to keep track of visited vertices
-    std::vector<bool> visited(getNumOfVertex(), false);
-
-    // Initialize queue for BFS
-    std::queue<int> q;
-
-    // Start BFS from source vertex
-    q.push(source);
-    visited[source] = true;
-
-    // Loop until we reach the sink or the queue is empty
-    while (!q.empty()) {
-        int v = q.front();
-        q.pop();
-
-        // Check if we have reached the sink vertex
-        if (v == sink) {
-            return true;
-        }
-
-        // Check all neighbors of v that have residual capacity and haven't been visited yet
-        for (const auto& neighbor : adjacencyList[v]) {
-            int u = neighbor.first;
-            int capacity = neighbor.second;
-
-            if (!visited[u] && capacity > 0) {
-                q.push(u);
-                visited[u] = true;
-                parent[u] = v;
-            }
+int Graph::findEdgeIndex(int u, int v) {
+    for (int i = 0; i < adjacencyList[u].size(); i++) {
+        if (adjacencyList[u][i].first == v) {
+            return i;
         }
     }
-
-    // If we haven't found an augmenting path, return false
-    return false;
+    return -1;
 }
-
-void Graph::setWeightOfEdge(int v1, int v2, int weight) {
-    // Check if the edge already exists in the adjacency list
-    for (auto& pair : adjacencyList[v1]) {
-        if (pair.first == v2) {
-            pair.second = weight;
-            return;
-        }
-    }
-    // If the edge doesn't exist, add it to the adjacency list
-    adjacencyList[v1].emplace_back(v2, weight);
-}*/
 
 int Graph::sendToPython(){
     std::string stringGraph = "python draw.py " + std::to_string(getNumOfVertex()) + " ";

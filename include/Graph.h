@@ -31,8 +31,7 @@ public:
     // Add an edge to the graph
     void addEdge(int v1, int v2, int weight);
 
-    void setWeightOfEdge(int v1, int v2, int weight);
-
+    //void setWeightOfEdge(int v1, int v2, int weight);
 
     // Perform a breadth-first search starting at the given vertex
     Graph bfs(int start);
@@ -40,19 +39,18 @@ public:
     // Perform a depth-first search starting at the given vertex
     Graph dfs(int start);
 
+    // Build a minimum spanning tree using Prim's algorithm
     Graph primMST(int start);
 
-    Graph fordFulkerson(int s, int t);
-     
-    // Build a minimum spanning tree using Prim's algorithm
-    std::vector<std::pair<int, int>> prim();
+    int fordFulkerson(int source, int sink);
 
-    
+    void updateWeightOfEdge(int v1, int v2, int newWeight);
+
+    int findEdgeIndex(int u, int v);
 
 private:
     std::unordered_map<int, std::vector<std::pair<int, int>>> adjacencyList;
-
-    bool hasAugmentingPath(int source, int sink, std::vector<int>& parent);
+ 
 };
 
 #endif // GRAPH_H
