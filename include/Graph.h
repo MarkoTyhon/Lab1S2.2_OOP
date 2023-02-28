@@ -47,6 +47,10 @@ public:
     void updateWeightOfEdge(int v1, int v2, int newWeight);
 
     int findEdgeIndex(int u, int v);
+    
+    Graph dijkstra(int start);
+
+    Graph aStar(int start, int goal);
 
 private:
     std::unordered_map<int, std::vector<std::pair<int, int>>> adjacencyList;

@@ -120,49 +120,48 @@ Graph Graph::primMST(int start) {
 }
 
 
-int Graph::fordFulkerson(int s, int t) {
-    Graph residualGraph = *this;
-    int maxFlow = 0;
 
+int Graph::fordFulkerson(int source, int sink) {
+    // Initialize residual graph
+    std::vector<std::vector<int>> residual(getNumOfVertex(), std::vector<int>(getNumOfVertex(), 0));
+    for (int v = 0; v < getNumOfVertex(); v++) {
+        for (const auto& neighbor : adjacencyList[v]) {
+            int u = neighbor.first;
+            int weight = neighbor.second;
+            residual[v][u] = weight;
+        }
+    }
+
+    int maxFlow = 0;
     while (true) {
+        // Find an augmenting path in the residual graph
         std::vector<int> parent(getNumOfVertex(), -1);
         std::queue<int> q;
-        q.push(s);
-        parent[s] = s;
-
-        while (!q.empty() && parent[t] == -1) {
-            int u = q.front();
+        q.push(source);
+        while (!q.empty()) {
+            int v = q.front();
             q.pop();
-
-            for (const auto& neighbor : residualGraph.adjacencyList[u]) {
-                int v = neighbor.first;
-                int capacity = neighbor.second;
-
-                if (capacity > 0 && parent[v] == -1) {
-                    parent[v] = u;
-                    q.push(v);
+            for (int u = 0; u < getNumOfVertex(); u++) {
+                if (parent[u] == -1 && residual[v][u] > 0) {
+                    parent[u] = v;
+                    q.push(u);
                 }
             }
         }
+        if (parent[sink] == -1) break;
 
-        if (parent[t] == -1) {
-            break;
+        // Compute the augmenting flow and update the residual graph
+        int augmentingFlow = INT_MAX;
+        for (int u = sink; u != source; u = parent[u]) {
+            int v = parent[u];
+            augmentingFlow = std::min(augmentingFlow, residual[v][u]);
         }
-
-        int pathFlow = INT_MAX;
-        for (int v = t; v != s; v = parent[v]) {
-            int u = parent[v];
-            int residualCapacity = residualGraph.getWeightOfEdge(u, v);
-            pathFlow = std::min(pathFlow, residualCapacity);
+        for (int u = sink; u != source; u = parent[u]) {
+            int v = parent[u];
+            residual[v][u] -= augmentingFlow;
+            residual[u][v] += augmentingFlow;
         }
-
-        for (int v = t; v != s; v = parent[v]) {
-            int u = parent[v];
-            residualGraph.adjacencyList[u][residualGraph.findEdgeIndex(u, v)].second -= pathFlow;
-            residualGraph.adjacencyList[v][residualGraph.findEdgeIndex(v, u)].second += pathFlow;
-        }
-
-        maxFlow += pathFlow;
+        maxFlow += augmentingFlow;
     }
 
     return maxFlow;
@@ -176,6 +175,81 @@ int Graph::findEdgeIndex(int u, int v) {
     }
     return -1;
 }
+
+Graph Graph::dijkstra(int start) {
+    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<>> pq;
+    std::vector<int> dist(getNumOfVertex(), std::numeric_limits<int>::max());
+    std::vector<int> prev(getNumOfVertex(), -1);
+    Graph H(getNumOfVertex());
+
+    pq.push(std::make_pair(0, start));
+    dist[start] = 0;
+
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        pq.pop();
+
+        for (const auto& neighbor : adjacencyList[u]) {
+            int v = neighbor.first;
+            int weight = neighbor.second;
+
+            if (dist[u] + weight < dist[v]) {
+                dist[v] = dist[u] + weight;
+                prev[v] = u;
+                pq.push(std::make_pair(dist[v], v));
+            }
+        }
+    }
+
+    for (int i = 0; i < getNumOfVertex(); i++) {
+        if (i != start && prev[i] != -1) {
+            H.addEdge(i, prev[i], getWeightOfEdge(i, prev[i]));
+        }
+    }
+
+    return H;
+}
+
+Graph Graph::aStar(int start, int goal) {
+    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<>> pq;
+    std::vector<int> dist(getNumOfVertex(), std::numeric_limits<int>::max());
+    std::vector<int> prev(getNumOfVertex(), -1);
+    Graph H(getNumOfVertex());
+
+    pq.push(std::make_pair(0, start));
+    dist[start] = 0;
+
+    while (!pq.empty()) {
+        int u = pq.top().second;
+        pq.pop();
+
+        if (u == goal) {
+            break;
+        }
+
+        for (const auto& neighbor : adjacencyList[u]) {
+            int v = neighbor.first;
+            int weight = neighbor.second;
+
+            int heuristic = std::abs(v - goal);
+
+            if (dist[u] + weight + heuristic < dist[v]) {
+                dist[v] = dist[u] + weight + heuristic;
+                prev[v] = u;
+                pq.push(std::make_pair(dist[v], v));
+            }
+        }
+    }
+
+    for (int i = 0; i < getNumOfVertex(); i++) {
+        if (i != start && prev[i] != -1) {
+            H.addEdge(i, prev[i], getWeightOfEdge(i, prev[i]));
+        }
+    }
+
+    return H;
+}
+
 
 int Graph::sendToPython(){
     std::string stringGraph = "python draw.py " + std::to_string(getNumOfVertex()) + " ";
