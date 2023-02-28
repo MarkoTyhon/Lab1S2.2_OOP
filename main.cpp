@@ -5,26 +5,22 @@
 
 
 int main() {
-    // Create a new graph
-    Graph g;
+    Graph g(6); // Create graph with 6 vertices
+    g.addEdge(0, 1, 16); // Add edges with capacities
+    g.addEdge(0, 2, 13);
+    g.addEdge(1, 2, 10);
+    g.addEdge(1, 3, 12);
+    g.addEdge(2, 1, 4);
+    g.addEdge(2, 4, 14);
+    g.addEdge(3, 2, 9);
+    g.addEdge(3, 5, 20);
+    g.addEdge(4, 3, 7);
+    g.addEdge(4, 5, 4);
 
-    // Add vertices to the graph
-    g.addVertex(0);
-    g.addVertex(1);
-    g.addVertex(2);
-    g.addVertex(3);
-    g.addVertex(4);
+    int source = 0;
+    int sink = 5;
 
-    // Add edges to the graph
-    g.addEdge(0, 1, 2);
-    g.addEdge(0, 3, 1);
-    g.addEdge(1, 2, 3);
-    g.addEdge(1, 3, 2);
-    g.addEdge(1, 4, 4);
-    g.addEdge(2, 4, 5);
-    g.addEdge(3, 4, 1);
-
-    std::cout << g.dfs(0).sendToPython() << "\n";
+    std::cout << g.fordFulkerson(source, sink).sendToPython() << "\n";
 }
     /*// Perform a breadth-first search starting at vertex 0
     std::cout << "BFS starting at vertex 0: ";

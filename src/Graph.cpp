@@ -86,46 +86,134 @@ Graph Graph::dfs(int start) {
     return H;
 }
 
-std::vector<std::pair<int, int>> Graph::prim() {
-    std::set<int> visited;
-    std::priority_queue<std::pair<int, int>, std::vector<std::pair<int, int>>, std::greater<>> pq;
-    std::vector<std::pair<int, int>> mst;
-
-    // Start with an arbitrary vertex
-    int start = adjacencyList.begin()->first;
-    visited.insert(start);
-
-    // Add all edges connected to the starting vertex to the priority queue
-    for (const auto& neighbor : adjacencyList[start]) {
-        pq.emplace(neighbor.second, neighbor.first);
+Graph Graph::primMST(int start) {
+    Graph MST(getNumOfVertex()); // create a new Graph to store the MST
+    std::vector<int> key(getNumOfVertex(), INT_MAX); // key values used to pick minimum weight edge in cut
+    std::vector<bool> mstSet(getNumOfVertex(), false); // to represent set of vertices not yet included in MST
+    std::vector<int> parent(getNumOfVertex(), -1); // to store constructed MST
+    key[start] = 0; // make key 0 for the starting vertex
+    for (int count = 0; count < getNumOfVertex() - 1; ++count) {
+        int u = -1;
+        // Pick the minimum key vertex from the set of vertices not yet included in MST
+        for (int v = 0; v < getNumOfVertex(); ++v) {
+            if (!mstSet[v] && (u == -1 || key[v] < key[u])) {
+                u = v;
+            }
+        }
+        // Add the picked vertex to the MST Set
+        mstSet[u] = true;
+        // Update key and parent for adjacent vertices of the picked vertex
+        for (auto const &pair : adjacencyList[u]) {
+            int v = pair.first;
+            int weight = pair.second;
+            if (!mstSet[v] && weight < key[v]) {
+                parent[v] = u;
+                key[v] = weight;
+            }
+        }
     }
+    // Add edges of the MST to the new Graph
+    for (int v = 1; v < getNumOfVertex(); ++v) {
+        MST.addEdge(parent[v], v, key[v]);
+    }
+    return MST;
+}
 
-    while (!pq.empty()) {
-        auto edge = pq.top();
-        pq.pop();
+Graph Graph::fordFulkerson(int source, int sink) {
+    // Create a residual graph with the same edges as the original graph
+    Graph residual(*this);
 
-        int weight = edge.first;
-        int v = edge.second;
+    // Initialize parent vector to keep track of augmenting path
+    std::vector<int> parent(getNumOfVertex(), -1);
 
-        if (visited.count(v)) {
-            continue;
+    // Initialize maximum flow to zero
+    int maxFlow = 0;
+
+    // Loop until there is no more augmenting path from source to sink
+    while (residual.hasAugmentingPath(source, sink, parent)) {
+        // Find the maximum flow that can be sent along the augmenting path
+        int pathFlow = INT_MAX;
+        for (int v = sink; v != source; v = parent[v]) {
+            int u = parent[v];
+            int capacity = residual.getWeightOfEdge(u, v);
+            pathFlow = std::min(pathFlow, capacity);
         }
 
-        visited.insert(v);
-        mst.emplace_back(start, v);
+        // Update the residual capacities of the edges along the augmenting path
+        for (int v = sink; v != source; v = parent[v]) {
+            int u = parent[v];
+            residual.setWeightOfEdge(u, v, residual.getWeightOfEdge(u, v) - pathFlow);
+            residual.setWeightOfEdge(v, u, residual.getWeightOfEdge(v, u) + pathFlow);
+        }
 
+        // Add the flow along the augmenting path to the maximum flow
+        maxFlow += pathFlow;
+    }
+
+    // Create a new graph with the same vertices and edges as the original graph,
+    // but with the capacities of the edges set to the amount of flow sent along them
+    Graph result(getNumOfVertex());
+    for (int v = 0; v < getNumOfVertex(); v++) {
         for (const auto& neighbor : adjacencyList[v]) {
             int u = neighbor.first;
-            int weight = neighbor.second;
+            int capacity = neighbor.second;
+            int flow = capacity - residual.getWeightOfEdge(v, u);
+            result.addEdge(v, u, flow);
+        }
+    }
 
-            if (!visited.count(u)) {
-                pq.emplace(weight, u);
+    return result;
+}
+
+/*bool Graph::hasAugmentingPath(int source, int sink, std::vector<int>& parent) {
+    // Initialize visited vector to keep track of visited vertices
+    std::vector<bool> visited(getNumOfVertex(), false);
+
+    // Initialize queue for BFS
+    std::queue<int> q;
+
+    // Start BFS from source vertex
+    q.push(source);
+    visited[source] = true;
+
+    // Loop until we reach the sink or the queue is empty
+    while (!q.empty()) {
+        int v = q.front();
+        q.pop();
+
+        // Check if we have reached the sink vertex
+        if (v == sink) {
+            return true;
+        }
+
+        // Check all neighbors of v that have residual capacity and haven't been visited yet
+        for (const auto& neighbor : adjacencyList[v]) {
+            int u = neighbor.first;
+            int capacity = neighbor.second;
+
+            if (!visited[u] && capacity > 0) {
+                q.push(u);
+                visited[u] = true;
+                parent[u] = v;
             }
         }
     }
 
-    return mst;
+    // If we haven't found an augmenting path, return false
+    return false;
 }
+
+void Graph::setWeightOfEdge(int v1, int v2, int weight) {
+    // Check if the edge already exists in the adjacency list
+    for (auto& pair : adjacencyList[v1]) {
+        if (pair.first == v2) {
+            pair.second = weight;
+            return;
+        }
+    }
+    // If the edge doesn't exist, add it to the adjacency list
+    adjacencyList[v1].emplace_back(v2, weight);
+}*/
 
 int Graph::sendToPython(){
     std::string stringGraph = "python draw.py " + std::to_string(getNumOfVertex()) + " ";
